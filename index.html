@@ -9,120 +9,123 @@
 body{
     font-family:Arial,sans-serif;
     background:#20242b;
-    color:white;
+    color:#fff;
     margin:20px;
 }
 h1{
     text-align:center;
 }
+
 .container{
     display:grid;
     grid-template-columns:repeat(4,1fr);
     gap:15px;
 }
+
 .team{
-    background:#2e3440;
+    background:#2f3645;
     border-radius:12px;
     padding:10px;
 }
+
 .team h2{
     text-align:center;
-    margin:0 0 10px;
     color:#ffd54f;
 }
-.member{
-    background:#3d4554;
-    padding:10px;
-    margin:6px 0;
-    border-radius:8px;
+
+.members{
+    min-height:280px;
 }
+
+.member{
+    background:#3f4859;
+    margin:8px 0;
+    padding:10px;
+    border-radius:8px;
+    cursor:grab;
+    user-select:none;
+}
+
+.member:active{
+    cursor:grabbing;
+}
+
 .leader{
     background:#ff9800;
-    color:black;
+    color:#000;
     font-weight:bold;
 }
-</style>
 
+.drag-over{
+    outline:3px dashed #4caf50;
+}
+</style>
 </head>
+
 <body>
 
 <h1>🏰 Guild Team Manager</h1>
 
-<div class="container">
+<div class="container" id="teams"></div>
 
-<div class="team">
-<h2>ทีม 1 (5/5)</h2>
-<div class="member leader">👑 Leader</div>
-<div class="member">Member 1</div>
-<div class="member">Member 2</div>
-<div class="member">Member 3</div>
-<div class="member">Member 4</div>
-</div>
+<script>
 
-<div class="team">
-<h2>ทีม 2 (5/5)</h2>
-<div class="member leader">👑 Leader</div>
-<div class="member">Member 1</div>
-<div class="member">Member 2</div>
-<div class="member">Member 3</div>
-<div class="member">Member 4</div>
-</div>
+const teams=document.getElementById("teams");
 
-<div class="team">
-<h2>ทีม 3 (5/5)</h2>
-<div class="member leader">👑 Leader</div>
-<div class="member">Member 1</div>
-<div class="member">Member 2</div>
-<div class="member">Member 3</div>
-<div class="member">Member 4</div>
-</div>
+for(let t=1;t<=8;t++){
 
-<div class="team">
-<h2>ทีม 4 (5/5)</h2>
-<div class="member leader">👑 Leader</div>
-<div class="member">Member 1</div>
-<div class="member">Member 2</div>
-<div class="member">Member 3</div>
-<div class="member">Member 4</div>
-</div>
+const team=document.createElement("div");
+team.className="team";
 
-<div class="team">
-<h2>ทีม 5 (5/5)</h2>
-<div class="member leader">👑 Leader</div>
-<div class="member">Member 1</div>
-<div class="member">Member 2</div>
-<div class="member">Member 3</div>
-<div class="member">Member 4</div>
-</div>
+team.innerHTML=`
+<h2>ทีม ${t}</h2>
 
-<div class="team">
-<h2>ทีม 6 (5/5)</h2>
-<div class="member leader">👑 Leader</div>
-<div class="member">Member 1</div>
-<div class="member">Member 2</div>
-<div class="member">Member 3</div>
-<div class="member">Member 4</div>
+<div class="members">
+<div class="member leader" draggable="true">👑 Leader ${t}</div>
+<div class="member" draggable="true">สมาชิก ${t}-1</div>
+<div class="member" draggable="true">สมาชิก ${t}-2</div>
+<div class="member" draggable="true">สมาชิก ${t}-3</div>
+<div class="member" draggable="true">สมาชิก ${t}-4</div>
 </div>
+`;
 
-<div class="team">
-<h2>ทีม 7 (5/5)</h2>
-<div class="member leader">👑 Leader</div>
-<div class="member">Member 1</div>
-<div class="member">Member 2</div>
-<div class="member">Member 3</div>
-<div class="member">Member 4</div>
-</div>
+teams.appendChild(team);
 
-<div class="team">
-<h2>ทีม 8 (5/5)</h2>
-<div class="member leader">👑 Leader</div>
-<div class="member">Member 1</div>
-<div class="member">Member 2</div>
-<div class="member">Member 3</div>
-<div class="member">Member 4</div>
-</div>
+}
 
-</div>
+let dragItem=null;
+
+document.querySelectorAll(".member").forEach(item=>{
+
+item.addEventListener("dragstart",()=>{
+dragItem=item;
+});
+
+});
+
+document.querySelectorAll(".members").forEach(box=>{
+
+box.addEventListener("dragover",(e)=>{
+e.preventDefault();
+box.classList.add("drag-over");
+});
+
+box.addEventListener("dragleave",()=>{
+box.classList.remove("drag-over");
+});
+
+box.addEventListener("drop",(e)=>{
+e.preventDefault();
+box.classList.remove("drag-over");
+
+if(dragItem){
+box.appendChild(dragItem);
+}
+});
+
+});
+
+</script>
 
 </body>
 </html>
