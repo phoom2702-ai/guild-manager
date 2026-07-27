@@ -2,90 +2,153 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Guild Team Manager</title>
 
 <style>
 *{box-sizing:border-box}
+
 body{
-    margin:20px;
-    font-family:Segoe UI,Tahoma,sans-serif;
-    background:#1d2330;
+    margin:15px;
+    background:#151922;
     color:white;
+    font-family:Arial,sans-serif;
 }
 
 h1{
     text-align:center;
+    color:#ffd54f;
+}
+
+button{
+    padding:10px 15px;
+    border:0;
+    border-radius:8px;
+    cursor:pointer;
+    margin:5px;
+    font-weight:bold;
+}
+
+.btn{
+    text-align:center;
+}
+
+.reset{
+    background:#e53935;
+    color:white;
+}
+
+.random{
+    background:#43a047;
+    color:white;
 }
 
 .pool{
-    background:#2f3645;
-    padding:15px;
+    background:#252c3a;
+    padding:12px;
     border-radius:12px;
-    margin-bottom:20px;
+    margin-bottom:15px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:0;
+    margin-bottom:10px;
 }
 
 .members{
-    min-height:70px;
-    border:2px dashed #666;
-    padding:10px;
+    min-height:50px;
+    padding:8px;
+    border:2px dashed #667;
     border-radius:10px;
+}
+
+.poolBox{
+    height:180px;
+    overflow-y:auto;
 }
 
 .container{
     display:grid;
     grid-template-columns:repeat(4,1fr);
-    gap:15px;
+    gap:12px;
 }
 
 .team{
-    background:#2f3645;
-    border-radius:12px;
+    background:#252c3a;
     padding:10px;
+    border-radius:12px;
 }
 
 .team h3{
-    margin:0 0 10px;
     text-align:center;
-    color:#FFD54F;
+    color:#ffd54f;
 }
 
 .member{
-    background:#45506a;
-    margin:6px 0;
+    background:#3d485d;
     padding:10px;
+    margin:6px 0;
     border-radius:8px;
     cursor:grab;
 }
 
 .member:hover{
-    background:#5b6b8d;
-}
-
-.drag-over{
-    border-color:#4CAF50;
+    background:#52627c;
 }
 
 .full{
     border:2px solid red;
 }
+
+.drag{
+    border-color:#4caf50;
+}
+
+@media(max-width:900px){
+    .container{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:500px){
+    .container{
+        grid-template-columns:1fr;
+    }
+}
 </style>
 
 </head>
+
 <body>
 
 <h1>🏰 Guild Team Manager</h1>
 
-<div class="pool">
-<h2>รายชื่อสมาชิกทั้งหมด</h2>
-<div class="members" id="pool"></div>
+<div class="btn">
+<button class="random" onclick="randomTeam()">🎲 สุ่มแบ่งทีม</button>
+<button class="reset" onclick="resetAll()">🔄 รีเซ็ต</button>
 </div>
 
-<div class="container" id="teams"></div>
+
+<div class="pool">
+
+<h2>👥 รายชื่อสมาชิกทั้งหมด</h2>
+
+<input id="search" placeholder="🔍 ค้นหารายชื่อ">
+
+<div id="pool" class="members poolBox"></div>
+
+</div>
+
+
+<div id="teams" class="container"></div>
+
 
 <script>
 
-const names=[
+const memberNames=[
 "Alice","Bob","Cat","David","Emma",
 "Frank","Grace","Henry","Ice","Jane",
 "Ken","Leo","Mint","Neo","Oscar",
@@ -96,109 +159,242 @@ const names=[
 "Oat","Ping","Rin","Toon","Beam"
 ];
 
+
 const pool=document.getElementById("pool");
-
-names.forEach(name=>{
-    pool.appendChild(createMember(name));
-});
-
 const teams=document.getElementById("teams");
 
-for(let i=1;i<=8;i++){
-
-let team=document.createElement("div");
-
-team.className="team";
-
-team.innerHTML=`
-<h3>ทีม ${i} (<span class="count">0</span>/5)</h3>
-<div class="members teamBox"></div>
-`;
-
-teams.appendChild(team);
-
-}
-
-let dragItem=null;
 
 function createMember(name){
 
-const div=document.createElement("div");
+let div=document.createElement("div");
 
 div.className="member";
-
 div.draggable=true;
+div.textContent=name;
 
-div.innerText=name;
-
-div.addEventListener("dragstart",()=>{
+div.ondragstart=()=>{
 dragItem=div;
-});
+};
 
 return div;
 
 }
 
-function updateCounts(){
 
-document.querySelectorAll(".team").forEach(team=>{
+function load(){
 
-const box=team.querySelector(".teamBox");
+let save=localStorage.getItem("guild");
 
-const count=box.children.length;
+if(save){
 
-team.querySelector(".count").innerText=count;
+let data=JSON.parse(save);
 
-if(count>=5)
-team.classList.add("full");
-else
-team.classList.remove("full");
+pool.innerHTML="";
+teams.innerHTML="";
 
+createTeams();
+
+data.pool.forEach(x=>{
+pool.appendChild(createMember(x));
+});
+
+data.teams.forEach((team,i)=>{
+
+team.forEach(x=>{
+document.querySelectorAll(".teamBox")[i]
+.appendChild(createMember(x));
+});
+
+});
+
+}else{
+
+createTeams();
+
+memberNames.forEach(x=>{
+pool.appendChild(createMember(x));
 });
 
 }
 
-document.querySelectorAll(".members").forEach(box=>{
+update();
 
-box.addEventListener("dragover",e=>{
+}
 
+
+
+function createTeams(){
+
+teams.innerHTML="";
+
+for(let i=1;i<=8;i++){
+
+let div=document.createElement("div");
+
+div.className="team";
+
+div.innerHTML=`
+<h3>
+ทีม ${i} 
+(<span class="count">0</span>/5)
+</h3>
+
+<div class="members teamBox"></div>
+`;
+
+teams.appendChild(div);
+
+}
+
+}
+
+
+
+let dragItem=null;
+
+
+document.addEventListener("dragover",e=>{
+
+let box=e.target.closest(".members");
+
+if(box){
 e.preventDefault();
-
-box.classList.add("drag-over");
+box.classList.add("drag");
+}
 
 });
 
-box.addEventListener("dragleave",()=>{
 
-box.classList.remove("drag-over");
+document.addEventListener("dragleave",e=>{
+
+let box=e.target.closest(".members");
+
+if(box)
+box.classList.remove("drag");
 
 });
 
-box.addEventListener("drop",e=>{
 
-e.preventDefault();
+document.addEventListener("drop",e=>{
 
-box.classList.remove("drag-over");
+let box=e.target.closest(".members");
 
-const isTeam=box.classList.contains("teamBox");
+if(!box)return;
+
+box.classList.remove("drag");
+
+let isTeam=box.classList.contains("teamBox");
+
 
 if(isTeam && box.children.length>=5){
 
-alert("ทีมนี้เต็มแล้ว (5 คน)");
+alert("ทีมนี้เต็มแล้ว 5/5");
 
 return;
 
 }
 
+
 box.appendChild(dragItem);
 
-updateCounts();
+save();
+
+update();
+
+});
+
+
+
+function update(){
+
+document.querySelectorAll(".team").forEach(team=>{
+
+let count=team.querySelector(".teamBox").children.length;
+
+team.querySelector(".count").innerText=count;
+
+team.classList.toggle("full",count>=5);
+
+});
+
+}
+
+
+
+function save(){
+
+let data={
+pool:[...pool.children].map(x=>x.textContent),
+
+teams:[...document.querySelectorAll(".teamBox")]
+.map(box=>[...box.children].map(x=>x.textContent))
+
+};
+
+localStorage.setItem("guild",JSON.stringify(data));
+
+}
+
+
+
+function resetAll(){
+
+localStorage.removeItem("guild");
+location.reload();
+
+}
+
+
+
+function randomTeam(){
+
+let all=[
+...pool.children
+];
+
+pool.innerHTML="";
+
+all.sort(()=>Math.random()-0.5);
+
+
+let boxes=document.querySelectorAll(".teamBox");
+
+all.forEach((m,i)=>{
+
+let team=boxes[i%8];
+
+if(team.children.length<5)
+team.appendChild(m);
+
+});
+
+save();
+update();
+
+}
+
+
+
+document.getElementById("search")
+.addEventListener("input",function(){
+
+let key=this.value.toLowerCase();
+
+document.querySelectorAll("#pool .member")
+.forEach(m=>{
+
+m.style.display=
+m.textContent.toLowerCase()
+.includes(key)
+?"block":"none";
 
 });
 
 });
 
-updateCounts();
+
+
+load();
 
 </script>
 
