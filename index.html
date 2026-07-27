@@ -6,14 +6,30 @@
 <title>Guild Team Manager</title>
 
 <style>
+*{box-sizing:border-box}
 body{
-    font-family:Arial,sans-serif;
-    background:#20242b;
-    color:#fff;
     margin:20px;
+    font-family:Segoe UI,Tahoma,sans-serif;
+    background:#1d2330;
+    color:white;
 }
+
 h1{
     text-align:center;
+}
+
+.pool{
+    background:#2f3645;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+
+.members{
+    min-height:70px;
+    border:2px dashed #666;
+    padding:10px;
+    border-radius:10px;
 }
 
 .container{
@@ -28,65 +44,75 @@ h1{
     padding:10px;
 }
 
-.team h2{
+.team h3{
+    margin:0 0 10px;
     text-align:center;
-    color:#ffd54f;
-}
-
-.members{
-    min-height:280px;
+    color:#FFD54F;
 }
 
 .member{
-    background:#3f4859;
-    margin:8px 0;
+    background:#45506a;
+    margin:6px 0;
     padding:10px;
     border-radius:8px;
     cursor:grab;
-    user-select:none;
 }
 
-.member:active{
-    cursor:grabbing;
-}
-
-.leader{
-    background:#ff9800;
-    color:#000;
-    font-weight:bold;
+.member:hover{
+    background:#5b6b8d;
 }
 
 .drag-over{
-    outline:3px dashed #4caf50;
+    border-color:#4CAF50;
+}
+
+.full{
+    border:2px solid red;
 }
 </style>
-</head>
 
+</head>
 <body>
 
 <h1>🏰 Guild Team Manager</h1>
+
+<div class="pool">
+<h2>รายชื่อสมาชิกทั้งหมด</h2>
+<div class="members" id="pool"></div>
+</div>
 
 <div class="container" id="teams"></div>
 
 <script>
 
+const names=[
+"Alice","Bob","Cat","David","Emma",
+"Frank","Grace","Henry","Ice","Jane",
+"Ken","Leo","Mint","Neo","Oscar",
+"Palm","Queen","Rain","Sky","Tiger",
+"Unity","Violet","Wind","Xen","Yuri",
+"Zero","Bank","Film","Gun","Hero",
+"Jame","Kim","Lucky","Max","Nice",
+"Oat","Ping","Rin","Toon","Beam"
+];
+
+const pool=document.getElementById("pool");
+
+names.forEach(name=>{
+    pool.appendChild(createMember(name));
+});
+
 const teams=document.getElementById("teams");
 
-for(let t=1;t<=8;t++){
+for(let i=1;i<=8;i++){
 
-const team=document.createElement("div");
+let team=document.createElement("div");
+
 team.className="team";
 
 team.innerHTML=`
-<h2>ทีม ${t}</h2>
-
-<div class="members">
-<div class="member leader" draggable="true">👑 Leader ${t}</div>
-<div class="member" draggable="true">สมาชิก ${t}-1</div>
-<div class="member" draggable="true">สมาชิก ${t}-2</div>
-<div class="member" draggable="true">สมาชิก ${t}-3</div>
-<div class="member" draggable="true">สมาชิก ${t}-4</div>
-</div>
+<h3>ทีม ${i} (<span class="count">0</span>/5)</h3>
+<div class="members teamBox"></div>
 `;
 
 teams.appendChild(team);
@@ -95,35 +121,84 @@ teams.appendChild(team);
 
 let dragItem=null;
 
-document.querySelectorAll(".member").forEach(item=>{
+function createMember(name){
 
-item.addEventListener("dragstart",()=>{
-dragItem=item;
+const div=document.createElement("div");
+
+div.className="member";
+
+div.draggable=true;
+
+div.innerText=name;
+
+div.addEventListener("dragstart",()=>{
+dragItem=div;
 });
 
+return div;
+
+}
+
+function updateCounts(){
+
+document.querySelectorAll(".team").forEach(team=>{
+
+const box=team.querySelector(".teamBox");
+
+const count=box.children.length;
+
+team.querySelector(".count").innerText=count;
+
+if(count>=5)
+team.classList.add("full");
+else
+team.classList.remove("full");
+
 });
+
+}
 
 document.querySelectorAll(".members").forEach(box=>{
 
-box.addEventListener("dragover",(e)=>{
+box.addEventListener("dragover",e=>{
+
 e.preventDefault();
+
 box.classList.add("drag-over");
+
 });
 
 box.addEventListener("dragleave",()=>{
+
 box.classList.remove("drag-over");
+
 });
 
-box.addEventListener("drop",(e)=>{
+box.addEventListener("drop",e=>{
+
 e.preventDefault();
+
 box.classList.remove("drag-over");
 
-if(dragItem){
-box.appendChild(dragItem);
+const isTeam=box.classList.contains("teamBox");
+
+if(isTeam && box.children.length>=5){
+
+alert("ทีมนี้เต็มแล้ว (5 คน)");
+
+return;
+
 }
+
+box.appendChild(dragItem);
+
+updateCounts();
+
 });
 
 });
+
+updateCounts();
 
 </script>
 
