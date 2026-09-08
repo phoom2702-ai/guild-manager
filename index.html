@@ -2,400 +2,801 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Guild Team Manager</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตัวแจ้งเตือนปลาหมึกเกิด</title>
 <style>
-*{box-sizing:border-box}
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap');
 
-body{
-    margin:15px;
-    background:#151922;
-    color:white;
-    font-family:Arial,sans-serif;
-}
+  :root{
+    --bg-deep:#0c0f1a;
+    --bg-mid:#141a2b;
+    --surface:#141a2b;
+    --surface-2:#1b2237;
+    --line:#2a3350;
+    --text:#e9ecf7;
+    --text-dim:#8b93b0;
+    --teal:#3fd6c4;
+    --teal-dim:#1e4a44;
+    --violet:#8b7cf6;
+    --coral:#ff8fa3;
+    --danger:#ef5a6f;
+  }
 
-h1{
-    text-align:center;
-    color:#ffd54f;
-}
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(139,124,246,0.20), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, rgba(63,214,196,0.18), transparent 55%),
+      var(--bg-deep);
+    color:var(--text);
+    font-family:'IBM Plex Sans Thai','Inter',sans-serif;
+    min-height:100vh;
+    line-height:1.55;
+  }
 
-button{
-    padding:10px 15px;
-    border:0;
-    border-radius:8px;
-    cursor:pointer;
-    margin:5px;
-    font-weight:bold;
-}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 80px;}
 
-.btn{
-    text-align:center;
-}
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    padding:40px 32px 36px;
+    border-radius:20px;
+    background:linear-gradient(160deg, var(--bg-mid), var(--surface));
+    border:1px solid var(--line);
+    overflow:hidden;
+    margin-bottom:28px;
+  }
+  .squid-glow{
+    position:absolute; right:-40px; top:-30px; width:260px; height:260px;
+    opacity:0.5; pointer-events:none;
+  }
+  .eyebrow-none{ /* intentionally no all-caps eyebrow label */ }
+  .hero h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:clamp(28px,4vw,38px);
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+    max-width:14ch;
+  }
+  .hero p.sub{
+    color:var(--text-dim);
+    font-size:15px;
+    max-width:52ch;
+    margin:0 0 26px;
+  }
+  .countdown-row{
+    display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
+  }
+  .countdown-num{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:clamp(40px,7vw,64px);
+    color:var(--teal);
+    line-height:1;
+  }
+  .countdown-label{
+    color:var(--text-dim);
+    font-size:14px;
+  }
+  .next-time-chip{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    padding:6px 14px;
+    border-radius:999px;
+    font-size:13px;
+    color:var(--text);
+    margin-top:18px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);}
 
-.reset{
-    background:#e53935;
-    color:white;
-}
-
-.random{
-    background:#43a047;
-    color:white;
-}
-
-.pool{
-    background:#252c3a;
-    padding:12px;
+  /* ---------- status banner ---------- */
+  .status-banner{
+    display:flex; align-items:flex-start; gap:12px;
+    padding:14px 16px;
     border-radius:12px;
-    margin-bottom:15px;
-}
+    border:1px solid var(--line);
+    background:var(--surface);
+    font-size:13.5px;
+    color:var(--text-dim);
+    margin-bottom:28px;
+  }
+  .status-banner b{color:var(--text); font-weight:600;}
+  .status-banner.active{border-color:var(--teal-dim); background:rgba(63,224,197,0.06);}
+  .status-banner.active b{color:var(--teal);}
 
-input{
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:0;
-    margin-bottom:10px;
-}
+  /* ---------- sections ---------- */
+  section{margin-bottom:28px;}
+  .section-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .section-head h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:17px;
+    font-weight:600;
+    margin:0;
+  }
+  .section-head .desc{color:var(--text-dim); font-size:13px; margin-top:2px;}
 
-.members{
-    min-height:50px;
-    padding:8px;
-    border:2px dashed #667;
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:6px;
+  }
+
+  /* time list */
+  .time-row{
+    display:flex; align-items:center; gap:14px;
+    padding:14px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .time-row:last-child{border-bottom:none;}
+  .time-row .t{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:20px;
+    min-width:70px;
+  }
+  .time-row .t.off{color:var(--text-dim);}
+  .time-row .status-text{
+    flex:1;
+    font-size:13px;
+    color:var(--text-dim);
+  }
+  .time-row .status-text.done{color:var(--teal);}
+  .remove-btn{
+    background:none;border:none;color:var(--text-dim);
+    font-size:18px; cursor:pointer; padding:4px 8px; line-height:1;
+    border-radius:6px;
+  }
+  .remove-btn:hover{color:var(--danger); background:rgba(239,90,111,0.08);}
+
+  /* toggle switch */
+  .switch{
+    position:relative; width:42px; height:24px; flex-shrink:0;
+  }
+  .switch input{opacity:0; width:0; height:0;}
+  .slider{
+    position:absolute; cursor:pointer; inset:0;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:999px; transition:.2s;
+  }
+  .slider:before{
+    content:""; position:absolute; height:16px; width:16px; left:3px; top:2px;
+    background:var(--text); border-radius:50%; transition:.2s;
+  }
+  input:checked + .slider{background:var(--teal-dim);}
+  input:checked + .slider:before{transform:translateX(18px); background:var(--teal);}
+
+  /* add time row */
+  .add-row{
+    display:flex; gap:10px; padding:14px; align-items:center;
+  }
+
+  /* reminder chips */
+  .reminder-row{
+    display:flex; flex-wrap:wrap; gap:10px; padding:14px;
+  }
+  .reminder-row:empty:before{
+    content:"ยังไม่ได้ตั้งจุดแจ้งเตือน";
+    color:var(--text-dim); font-size:13px;
+  }
+  .reminder-chip{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    padding:8px 8px 8px 14px;
+    border-radius:999px;
+    font-size:14px;
+  }
+  .reminder-chip .val{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+  }
+  .reminder-chip button{
+    background:none; border:none; color:var(--text-dim);
+    cursor:pointer; font-size:15px; line-height:1;
+    width:22px; height:22px; border-radius:50%;
+  }
+  .reminder-chip button:hover{color:var(--danger); background:rgba(239,90,111,0.08);}
+  input[type="time"], input[type="text"], input[type="url"], textarea, input[type="number"]{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    color:var(--text);
     border-radius:10px;
-}
+    padding:10px 12px;
+    font-family:inherit;
+    font-size:14px;
+    width:100%;
+  }
+  input[type="time"]{width:auto;}
+  textarea{resize:vertical; min-height:70px;}
+  input:focus, textarea:focus{outline:2px solid var(--teal-dim); outline-offset:1px;}
 
-.poolBox{
-    height:180px;
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px;
+  }
+  .field .hint{font-size:12px; color:var(--text-dim); margin-top:6px; opacity:0.8;}
+
+  .row2{display:flex; gap:14px;}
+  .row2 > *{flex:1;}
+
+  button.primary{
+    background:var(--teal);
+    color:#0b241f;
+    border:none;
+    font-weight:600;
+    font-size:14px;
+    padding:12px 20px;
+    border-radius:10px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  button.primary:hover{filter:brightness(1.08);}
+  button.primary:disabled{opacity:0.5; cursor:not-allowed;}
+
+  button.ghost{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--text);
+    font-size:13px;
+    padding:10px 16px;
+    border-radius:10px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  button.ghost:hover{border-color:var(--teal-dim); color:var(--teal);}
+
+  .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;}
+
+  .log{
+    font-size:12.5px;
+    color:var(--text-dim);
+    max-height:160px;
     overflow-y:auto;
-}
+  }
+  .log .entry{
+    padding:9px 14px;
+    border-bottom:1px solid var(--line);
+    display:flex; justify-content:space-between; gap:10px;
+  }
+  .log .entry:last-child{border-bottom:none;}
+  .log .entry .ok{color:var(--teal);}
+  .log .entry .fail{color:var(--danger);}
+  .log:empty:before{
+    content:"ยังไม่มีการส่งข้อความ";
+    display:block; padding:16px; color:var(--text-dim);
+  }
 
-.container{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:12px;
-}
+  .save-toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--surface-2); border:1px solid var(--teal-dim); color:var(--teal);
+    padding:10px 18px; border-radius:999px; font-size:13px;
+    opacity:0; transition:opacity .25s, transform .25s;
+    pointer-events:none;
+  }
+  .save-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
-.team{
-    background:#252c3a;
-    padding:10px;
-    border-radius:12px;
-}
-
-.team h3{
-    text-align:center;
-    color:#ffd54f;
-}
-
-.member{
-    background:#3d485d;
-    padding:10px;
-    margin:6px 0;
-    border-radius:8px;
-    cursor:grab;
-}
-
-.member:hover{
-    background:#52627c;
-}
-
-.full{
-    border:2px solid red;
-}
-
-.drag{
-    border-color:#4caf50;
-}
-
-@media(max-width:900px){
-    .container{
-        grid-template-columns:repeat(2,1fr);
-    }
-}
-
-@media(max-width:500px){
-    .container{
-        grid-template-columns:1fr;
-    }
-}
+  @media (max-width:560px){
+    .row2{flex-direction:column;}
+  }
 </style>
-
 </head>
-
 <body>
 
-<h1>🏰 Guild Team Manager</h1>
+<div class="wrap">
 
-<div class="btn">
-<button class="random" onclick="randomTeam()">🎲 สุ่มแบ่งทีม</button>
-<button class="reset" onclick="resetAll()">🔄 รีเซ็ต</button>
+  <div class="hero">
+    <svg class="squid-glow" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="100" cy="80" rx="42" ry="55" fill="none" stroke="#8b7cf6" stroke-width="1.4" opacity="0.55"/>
+      <path d="M65 120 Q60 160 50 185" stroke="#3fd6c4" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
+      <path d="M80 128 Q78 165 70 190" stroke="#3fd6c4" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
+      <path d="M100 132 Q100 168 100 195" stroke="#3fd6c4" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
+      <path d="M120 128 Q122 165 130 190" stroke="#3fd6c4" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
+      <path d="M135 120 Q140 160 150 185" stroke="#3fd6c4" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
+      <circle cx="85" cy="72" r="4" fill="#e9ecf7" opacity="0.7"/>
+      <circle cx="115" cy="72" r="4" fill="#e9ecf7" opacity="0.7"/>
+    </svg>
+    <h1>เวลาปลาหมึกใกล้เกิดแล้ว</h1>
+    <p class="sub">ตั้งเวลาที่ต้องการ แล้วหน้านี้จะส่งข้อความไปที่ Discord ล่วงหน้าตามจำนวนนาทีที่กำหนด เปิดแท็บนี้ทิ้งไว้เพื่อให้การแจ้งเตือนทำงานอัตโนมัติ</p>
+    <div class="countdown-row">
+      <div class="countdown-num" id="countdownNum">--:--</div>
+      <div class="countdown-label">จนถึงรอบถัดไป</div>
+    </div>
+    <div class="next-time-chip"><span class="dot"></span><span id="nextTimeChip">ยังไม่ได้ตั้งเวลา</span></div>
+  </div>
+
+  <div class="status-banner" id="statusBanner">
+    <span>⚠️</span>
+    <span><b>สำคัญ:</b> การแจ้งเตือนทำงานผ่านเบราว์เซอร์เท่านั้น ต้องเปิดแท็บนี้ค้างไว้ตลอดเวลาที่ต้องการรับการแจ้งเตือน ถ้าปิดแท็บหรือปิดคอมพิวเตอร์ ระบบจะไม่ส่งข้อความให้</span>
+  </div>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2>รอบเวลาที่ตั้งไว้</h2>
+        <div class="desc">สลับปิด/เปิดแต่ละรอบได้ตามต้องการ</div>
+      </div>
+    </div>
+    <div class="card">
+      <div id="timeList"></div>
+      <div class="add-row">
+        <input type="time" id="newTimeInput" value="10:00">
+        <button class="ghost" id="addTimeBtn">+ เพิ่มเวลา</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2>ข้อความแจ้งเตือน</h2>
+        <div class="desc">ใช้ {time} แทนเวลาของรอบนั้น และ {minutes} แทนจำนวนนาทีที่เหลือ</div>
+      </div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="field">
+        <label for="messageInput">ข้อความที่จะส่งไป Discord</label>
+        <textarea id="messageInput">🦑 **ปลาหมึกจะเกิดใน อีก {minutes} นาที** 🦑
+เตรียมตัวให้พร้อม รอบเวลา {time} ใกล้มาถึงแล้ว 🌊</textarea>
+      </div>
+      <div class="field">
+        <label for="webhookInput">Discord Webhook URL</label>
+        <input type="url" id="webhookInput" placeholder="https://discord.com/api/webhooks/...">
+      </div>
+      <div class="actions">
+        <button class="primary" id="saveBtn">บันทึกการตั้งค่า</button>
+        <button class="ghost" id="testBtn">ส่งข้อความทดสอบตอนนี้</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2>แจ้งเตือนล่วงหน้ากี่นาที</h2>
+        <div class="desc">ตั้งได้หลายจุด เช่น เหลือ 5 นาที แล้วเหลือ 1 นาที จะได้ข้อความสองรอบต่อเวลา</div>
+      </div>
+    </div>
+    <div class="card">
+      <div id="reminderList"></div>
+      <div class="add-row">
+        <input type="number" id="newReminderInput" min="1" max="120" value="1" style="width:90px;">
+        <span style="color:var(--text-dim); font-size:13px;">นาทีก่อนถึงเวลา</span>
+        <button class="ghost" id="addReminderBtn" style="margin-left:auto;">+ เพิ่มจุดแจ้งเตือน</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2>ระบบแจ้งเตือน</h2>
+        <div class="desc">เปิดใช้งานเพื่อให้หน้านี้ตรวจสอบเวลาและส่งข้อความอัตโนมัติ</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="systemToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2>ประวัติการส่ง</h2>
+        <div class="desc">รายการล่าสุดจะแสดงด้านบน</div>
+      </div>
+      <button class="ghost" id="clearLogBtn">ล้างประวัติ</button>
+    </div>
+    <div class="card">
+      <div class="log" id="logList"></div>
+    </div>
+  </section>
+
 </div>
 
-
-<div class="pool">
-
-<h2>👥 รายชื่อสมาชิกทั้งหมด</h2>
-
-<input id="search" placeholder="🔍 ค้นหารายชื่อ">
-
-<div id="pool" class="members poolBox"></div>
-
-</div>
-
-
-<div id="teams" class="container"></div>
-
+<div class="save-toast" id="saveToast">บันทึกแล้ว</div>
 
 <script>
-
-const memberNames=[
-"Alice","Bob","Cat","David","Emma",
-"Frank","Grace","Henry","Ice","Jane",
-"Ken","Leo","Mint","Neo","Oscar",
-"Palm","Queen","Rain","Sky","Tiger",
-"Unity","Violet","Wind","Xen","Yuri",
-"Zero","Bank","Film","Gun","Hero",
-"Jame","Kim","Lucky","Max","Nice",
-"Oat","Ping","Rin","Toon","Beam"
-];
-
-
-const pool=document.getElementById("pool");
-const teams=document.getElementById("teams");
-
-
-function createMember(name){
-
-let div=document.createElement("div");
-
-div.className="member";
-div.draggable=true;
-div.textContent=name;
-
-div.ondragstart=()=>{
-dragItem=div;
-};
-
-return div;
-
-}
-
-
-function load(){
-
-let save=localStorage.getItem("guild");
-
-if(save){
-
-let data=JSON.parse(save);
-
-pool.innerHTML="";
-teams.innerHTML="";
-
-createTeams();
-
-data.pool.forEach(x=>{
-pool.appendChild(createMember(x));
-});
-
-data.teams.forEach((team,i)=>{
-
-team.forEach(x=>{
-document.querySelectorAll(".teamBox")[i]
-.appendChild(createMember(x));
-});
-
-});
-
-}else{
-
-createTeams();
-
-memberNames.forEach(x=>{
-pool.appendChild(createMember(x));
-});
-
-}
-
-update();
-
-}
-
-
-
-function createTeams(){
-
-teams.innerHTML="";
-
-for(let i=1;i<=8;i++){
-
-let div=document.createElement("div");
-
-div.className="team";
-
-div.innerHTML=`
-<h3>
-ทีม ${i} 
-(<span class="count">0</span>/5)
-</h3>
-
-<div class="members teamBox"></div>
-`;
-
-teams.appendChild(div);
-
-}
-
-}
-
-
-
-let dragItem=null;
-
-
-document.addEventListener("dragover",e=>{
-
-let box=e.target.closest(".members");
-
-if(box){
-e.preventDefault();
-box.classList.add("drag");
-}
-
-});
-
-
-document.addEventListener("dragleave",e=>{
-
-let box=e.target.closest(".members");
-
-if(box)
-box.classList.remove("drag");
-
-});
-
-
-document.addEventListener("drop",e=>{
-
-let box=e.target.closest(".members");
-
-if(!box)return;
-
-box.classList.remove("drag");
-
-let isTeam=box.classList.contains("teamBox");
-
-
-if(isTeam && box.children.length>=5){
-
-alert("ทีมนี้เต็มแล้ว 5/5");
-
-return;
-
-}
-
-
-box.appendChild(dragItem);
-
-save();
-
-update();
-
-});
-
-
-
-function update(){
-
-document.querySelectorAll(".team").forEach(team=>{
-
-let count=team.querySelector(".teamBox").children.length;
-
-team.querySelector(".count").innerText=count;
-
-team.classList.toggle("full",count>=5);
-
-});
-
-}
-
-
-
-function save(){
-
-let data={
-pool:[...pool.children].map(x=>x.textContent),
-
-teams:[...document.querySelectorAll(".teamBox")]
-.map(box=>[...box.children].map(x=>x.textContent))
-
-};
-
-localStorage.setItem("guild",JSON.stringify(data));
-
-}
-
-
-
-function resetAll(){
-
-localStorage.removeItem("guild");
-location.reload();
-
-}
-
-
-
-function randomTeam(){
-
-let all=[
-...pool.children
-];
-
-pool.innerHTML="";
-
-all.sort(()=>Math.random()-0.5);
-
-
-let boxes=document.querySelectorAll(".teamBox");
-
-all.forEach((m,i)=>{
-
-let team=boxes[i%8];
-
-if(team.children.length<5)
-team.appendChild(m);
-
-});
-
-save();
-update();
-
-}
-
-
-
-document.getElementById("search")
-.addEventListener("input",function(){
-
-let key=this.value.toLowerCase();
-
-document.querySelectorAll("#pool .member")
-.forEach(m=>{
-
-m.style.display=
-m.textContent.toLowerCase()
-.includes(key)
-?"block":"none";
-
-});
-
-});
-
-
-
-load();
-
+(function(){
+  const DEFAULT_TIMES = ["10:00","12:00","14:00","16:00","18:00","20:00","22:00","23:00"];
+  const STORAGE_KEY = "squid-notifier-settings";
+  const LOG_KEY = "squid-notifier-log";
+
+  let state = {
+    times: DEFAULT_TIMES.map(t => ({ time: t, enabled: true })),
+    message: document.getElementById('messageInput').value,
+    reminders: [5, 1], // minutes-before offsets, one message per offset per slot
+    webhook: "https://discord.com/api/webhooks/1546477786389155850/InntcBrOsPpgY1oE3xyoJGKcuIRH-k4FvX55isuORm1kdzEnq1ZWspV5oWB2csqd8-pp",
+    systemOn: false,
+    sentToday: {} // "YYYY-MM-DD|HH:MM|offset" -> true
+  };
+
+  let logEntries = [];
+  let timerHandle = null;
+
+  const el = id => document.getElementById(id);
+
+  function showToast(msg){
+    const t = el('saveToast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 1800);
+  }
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function todayKey(d){
+    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+  }
+
+  function parseTimeToday(timeStr, base){
+    const [h,m] = timeStr.split(':').map(Number);
+    const d = new Date(base);
+    d.setHours(h, m, 0, 0);
+    return d;
+  }
+
+  async function loadSettings(){
+    try{
+      const res = await window.storage.get(STORAGE_KEY);
+      if(res && res.value){
+        const parsed = JSON.parse(res.value);
+        state = Object.assign(state, parsed);
+        // migrate old single-value setting to the new reminders list
+        if(parsed.minutesBefore && !parsed.reminders){
+          state.reminders = [Number(parsed.minutesBefore)];
+          delete state.minutesBefore;
+        }
+        if(!Array.isArray(state.reminders) || state.reminders.length === 0){
+          state.reminders = [5];
+        }
+      }
+    }catch(e){ /* no saved settings yet */ }
+    try{
+      const logRes = await window.storage.get(LOG_KEY);
+      if(logRes && logRes.value){
+        logEntries = JSON.parse(logRes.value);
+      }
+    }catch(e){ /* no log yet */ }
+    renderAll();
+  }
+
+  async function persistSettings(){
+    try{
+      await window.storage.set(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){ console.error('save failed', e); }
+  }
+
+  async function persistLog(){
+    try{
+      await window.storage.set(LOG_KEY, JSON.stringify(logEntries.slice(0,40)));
+    }catch(e){ console.error('log save failed', e); }
+  }
+
+  function renderTimeList(){
+    const list = el('timeList');
+    list.innerHTML = '';
+    const sorted = [...state.times].sort((a,b)=> a.time.localeCompare(b.time));
+    sorted.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'time-row';
+
+      const label = document.createElement('div');
+      label.className = 't' + (item.enabled ? '' : ' off');
+      label.textContent = item.time;
+
+      const status = document.createElement('div');
+      status.className = 'status-text';
+      const now = new Date();
+      const dKey = todayKey(now);
+      const sentCount = state.reminders.filter(off => state.sentToday[dKey + '|' + item.time + '|' + off]).length;
+      const totalCount = state.reminders.length;
+      if(!item.enabled){
+        status.textContent = 'ปิดอยู่';
+      } else if(sentCount >= totalCount && totalCount > 0){
+        status.textContent = 'ส่งครบแล้ววันนี้ (' + totalCount + '/' + totalCount + ')';
+        status.classList.add('done');
+      } else if(sentCount > 0){
+        status.textContent = 'ส่งแล้ว ' + sentCount + '/' + totalCount + ' รอบ';
+        status.classList.add('done');
+      } else {
+        status.textContent = 'รอถึงเวลา';
+      }
+
+      const sw = document.createElement('label');
+      sw.className = 'switch';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = item.enabled;
+      cb.addEventListener('change', () => {
+        const target = state.times.find(x => x.time === item.time);
+        if(target){ target.enabled = cb.checked; }
+        persistSettings();
+        renderTimeList();
+        updateCountdown();
+      });
+      const slider = document.createElement('span');
+      slider.className = 'slider';
+      sw.appendChild(cb);
+      sw.appendChild(slider);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.textContent = '✕';
+      removeBtn.title = 'ลบเวลานี้';
+      removeBtn.addEventListener('click', () => {
+        state.times = state.times.filter(x => x.time !== item.time);
+        persistSettings();
+        renderTimeList();
+        updateCountdown();
+      });
+
+      row.appendChild(label);
+      row.appendChild(status);
+      row.appendChild(sw);
+      row.appendChild(removeBtn);
+      list.appendChild(row);
+    });
+  }
+
+  function renderLog(){
+    const list = el('logList');
+    list.innerHTML = '';
+    logEntries.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'entry';
+      const left = document.createElement('span');
+      left.textContent = entry.time + ' — รอบ ' + entry.slot;
+      const right = document.createElement('span');
+      right.className = entry.ok ? 'ok' : 'fail';
+      right.textContent = entry.ok ? 'ส่งสำเร็จ' : 'ส่งไม่สำเร็จ';
+      row.appendChild(left);
+      row.appendChild(right);
+      list.appendChild(row);
+    });
+  }
+
+  function renderReminderList(){
+    const wrap = el('reminderList');
+    wrap.innerHTML = '';
+    wrap.className = 'reminder-row';
+    const sorted = [...state.reminders].sort((a,b)=> b-a);
+    sorted.forEach(offset => {
+      const chip = document.createElement('div');
+      chip.className = 'reminder-chip';
+      const val = document.createElement('span');
+      val.className = 'val';
+      val.textContent = 'เหลือ ' + offset + ' นาที';
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = '✕';
+      removeBtn.title = 'ลบจุดแจ้งเตือนนี้';
+      removeBtn.addEventListener('click', () => {
+        state.reminders = state.reminders.filter(r => r !== offset);
+        if(state.reminders.length === 0){ state.reminders = [5]; }
+        persistSettings();
+        renderReminderList();
+        renderTimeList();
+        updateCountdown();
+      });
+      chip.appendChild(val);
+      chip.appendChild(removeBtn);
+      wrap.appendChild(chip);
+    });
+  }
+
+  function renderFields(){
+    el('messageInput').value = state.message;
+    el('webhookInput').value = state.webhook;
+    el('systemToggle').checked = state.systemOn;
+    updateStatusBanner();
+  }
+
+  function updateStatusBanner(){
+    const banner = el('statusBanner');
+    if(state.systemOn){
+      banner.classList.add('active');
+      banner.innerHTML = '<span>🟢</span><span><b>กำลังทำงาน:</b> หน้านี้จะตรวจสอบเวลาและส่งข้อความไป Discord ให้อัตโนมัติ ตราบใดที่แท็บนี้ยังเปิดอยู่</span>';
+    } else {
+      banner.classList.remove('active');
+      banner.innerHTML = '<span>⚠️</span><span><b>ยังไม่เปิดใช้งาน:</b> เปิดสวิตช์ "ระบบแจ้งเตือน" ด้านล่างเพื่อเริ่มตรวจสอบเวลา และเปิดแท็บนี้ทิ้งไว้ตลอดเวลาที่ต้องการรับการแจ้งเตือน</span>';
+    }
+  }
+
+  function getNextSlot(){
+    const now = new Date();
+    const enabled = state.times.filter(t => t.enabled);
+    let best = null;
+    enabled.forEach(item => {
+      state.reminders.forEach(offset => {
+        let target = parseTimeToday(item.time, now);
+        target.setMinutes(target.getMinutes() - Number(offset));
+        let fireTime = target;
+        // if the notify-moment already passed today, look at tomorrow
+        if(fireTime <= now){
+          fireTime = new Date(fireTime.getTime() + 24*60*60*1000);
+        }
+        if(!best || fireTime < best.fireTime){
+          best = { slot: item.time, offset, fireTime };
+        }
+      });
+    });
+    return best;
+  }
+
+  function updateCountdown(){
+    const numEl = el('countdownNum');
+    const chipEl = el('nextTimeChip');
+    const next = getNextSlot();
+    if(!next){
+      numEl.textContent = '--:--';
+      chipEl.textContent = 'ยังไม่ได้ตั้งเวลา';
+      return;
+    }
+    const now = new Date();
+    let diffMs = next.fireTime - now;
+    if(diffMs < 0) diffMs = 0;
+    const totalSec = Math.floor(diffMs/1000);
+    const h = Math.floor(totalSec/3600);
+    const m = Math.floor((totalSec%3600)/60);
+    const s = totalSec%60;
+    numEl.textContent = (h>0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+    chipEl.textContent = 'รอบ ' + next.slot + ' — แจ้งเตือนเมื่อเหลือ ' + next.offset + ' นาที';
+  }
+
+  async function sendDiscordMessage(content){
+    const url = state.webhook;
+    if(!url){ throw new Error('no webhook url'); }
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    });
+    if(!res.ok && res.status !== 204){
+      throw new Error('webhook responded with ' + res.status);
+    }
+  }
+
+  function buildMessage(slot, minutes){
+    return state.message.replaceAll('{time}', slot).replaceAll('{minutes}', String(minutes));
+  }
+
+  async function fireForSlot(slot, offset, key){
+    const content = buildMessage(slot, offset);
+    let ok = true;
+    try{
+      await sendDiscordMessage(content);
+    }catch(e){
+      ok = false;
+      console.error('send failed', e);
+    }
+    state.sentToday[key] = true;
+    logEntries.unshift({
+      time: new Date().toLocaleString('th-TH'),
+      slot: slot + ' (เหลือ ' + offset + ' นาที)',
+      ok
+    });
+    await persistSettings();
+    await persistLog();
+    renderTimeList();
+    renderLog();
+  }
+
+  function checkSchedule(){
+    if(!state.systemOn) return;
+    const now = new Date();
+    const dayKey = todayKey(now);
+    // clean up sentToday entries not from today
+    Object.keys(state.sentToday).forEach(k => {
+      if(!k.startsWith(dayKey)) delete state.sentToday[k];
+    });
+    state.times.forEach(item => {
+      if(!item.enabled) return;
+      state.reminders.forEach(offset => {
+        const key = dayKey + '|' + item.time + '|' + offset;
+        if(state.sentToday[key]) return;
+        const target = parseTimeToday(item.time, now);
+        target.setMinutes(target.getMinutes() - Number(offset));
+        const diff = now - target;
+        // fire if we're within the minute window right at/after the notify moment
+        if(diff >= 0 && diff < 60000){
+          fireForSlot(item.time, offset, key);
+        }
+      });
+    });
+  }
+
+  function renderAll(){
+    renderTimeList();
+    renderReminderList();
+    renderLog();
+    renderFields();
+    updateCountdown();
+  }
+
+  // ---- events ----
+  el('addTimeBtn').addEventListener('click', () => {
+    const val = el('newTimeInput').value;
+    if(!val) return;
+    if(state.times.some(t => t.time === val)){
+      showToast('เวลานี้มีอยู่แล้ว');
+      return;
+    }
+    state.times.push({ time: val, enabled: true });
+    persistSettings();
+    renderTimeList();
+    updateCountdown();
+    showToast('เพิ่มเวลาแล้ว');
+  });
+
+  el('addReminderBtn').addEventListener('click', () => {
+    const val = Math.max(1, Math.min(120, Number(el('newReminderInput').value) || 1));
+    if(state.reminders.includes(val)){
+      showToast('จุดแจ้งเตือนนี้มีอยู่แล้ว');
+      return;
+    }
+    state.reminders.push(val);
+    persistSettings();
+    renderReminderList();
+    renderTimeList();
+    updateCountdown();
+    showToast('เพิ่มจุดแจ้งเตือนแล้ว');
+  });
+
+  el('saveBtn').addEventListener('click', async () => {
+    state.message = el('messageInput').value;
+    state.webhook = el('webhookInput').value.trim();
+    await persistSettings();
+    updateCountdown();
+    showToast('บันทึกการตั้งค่าแล้ว');
+  });
+
+  el('testBtn').addEventListener('click', async () => {
+    const btn = el('testBtn');
+    btn.disabled = true;
+    btn.textContent = 'กำลังส่ง...';
+    const testOffset = state.reminders[0] || 5;
+    const content = buildMessage('ทดสอบ', testOffset);
+    let ok = true;
+    try{
+      await sendDiscordMessage(content || 'ทดสอบข้อความจากหน้าตั้งค่าปลาหมึก 🦑');
+    }catch(e){
+      ok = false;
+    }
+    logEntries.unshift({ time: new Date().toLocaleString('th-TH'), slot: 'ทดสอบ', ok });
+    await persistLog();
+    renderLog();
+    btn.disabled = false;
+    btn.textContent = 'ส่งข้อความทดสอบตอนนี้';
+    showToast(ok ? 'ส่งข้อความทดสอบสำเร็จ' : 'ส่งข้อความทดสอบไม่สำเร็จ ตรวจสอบ Webhook URL');
+  });
+
+  el('systemToggle').addEventListener('change', () => {
+    state.systemOn = el('systemToggle').checked;
+    persistSettings();
+    updateStatusBanner();
+    showToast(state.systemOn ? 'เปิดใช้งานระบบแล้ว' : 'ปิดใช้งานระบบแล้ว');
+  });
+
+  el('clearLogBtn').addEventListener('click', async () => {
+    logEntries = [];
+    await persistLog();
+    renderLog();
+    showToast('ล้างประวัติแล้ว');
+  });
+
+  // ---- init ----
+  loadSettings();
+  timerHandle = setInterval(() => {
+    updateCountdown();
+    checkSchedule();
+  }, 1000);
+})();
 </script>
 
 </body>
