@@ -699,7 +699,7 @@
       ok = false;
       console.error('send failed', e);
     }
-    state.sentToday[key] = true;
+    state.sentToday[key] = true; // already set synchronously in checkSchedule before this call; kept for the manual/other call paths
     logEntries.unshift({
       time: new Date().toLocaleString('th-TH'),
       slot: slot + ' (เหลือ ' + offset + ' นาที)',
@@ -727,6 +727,8 @@
         target.setMinutes(target.getMinutes() - Number(offset));
         const diff = now - target;
         if(diff >= 0 && diff < 60000){
+          state.sentToday[key] = true; // mark immediately so a slow webhook response can't cause duplicate fires on the next tick
+          persistSettings(); // fire-and-forget: also protects against a refresh mid-send causing a repeat
           fireForSlot(item.time, offset, key);
         }
       });
