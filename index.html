@@ -37,7 +37,6 @@
 
   .wrap{max-width:920px;margin:0 auto;padding:48px 24px 80px;}
 
-  /* ---------- Hero ---------- */
   .hero{
     position:relative;
     padding:40px 32px 36px;
@@ -51,7 +50,6 @@
     position:absolute; right:-40px; top:-30px; width:260px; height:260px;
     opacity:0.5; pointer-events:none;
   }
-  .eyebrow-none{ /* intentionally no all-caps eyebrow label */ }
   .hero h1{
     font-family:'Space Grotesk',sans-serif;
     font-weight:700;
@@ -92,7 +90,6 @@
   }
   .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);}
 
-  /* ---------- status banner ---------- */
   .status-banner{
     display:flex; align-items:flex-start; gap:12px;
     padding:14px 16px;
@@ -107,7 +104,6 @@
   .status-banner.active{border-color:var(--teal-dim); background:rgba(63,224,197,0.06);}
   .status-banner.active b{color:var(--teal);}
 
-  /* ---------- sections ---------- */
   section{margin-bottom:28px;}
   .section-head{
     display:flex; align-items:center; justify-content:space-between;
@@ -128,7 +124,6 @@
     padding:6px;
   }
 
-  /* time list */
   .time-row{
     display:flex; align-items:center; gap:14px;
     padding:14px 14px;
@@ -155,7 +150,6 @@
   }
   .remove-btn:hover{color:var(--danger); background:rgba(239,90,111,0.08);}
 
-  /* toggle switch */
   .switch{
     position:relative; width:42px; height:24px; flex-shrink:0;
   }
@@ -171,12 +165,10 @@
   input:checked + .slider{background:var(--teal-dim);}
   input:checked + .slider:before{transform:translateX(18px); background:var(--teal);}
 
-  /* add time row */
   .add-row{
     display:flex; gap:10px; padding:14px; align-items:center;
   }
 
-  /* reminder chips */
   .reminder-row{
     display:flex; flex-wrap:wrap; gap:10px; padding:14px;
   }
@@ -281,6 +273,10 @@
   }
   .save-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
+  .storage-note{
+    font-size:12px; color:var(--text-dim); margin-top:6px; opacity:0.85;
+  }
+
   @media (max-width:560px){
     .row2{flex-direction:column;}
   }
@@ -347,6 +343,7 @@
       <div class="field">
         <label for="webhookInput">Discord Webhook URL</label>
         <input type="url" id="webhookInput" placeholder="https://discord.com/api/webhooks/...">
+        <div class="storage-note" id="storageNote"></div>
       </div>
       <div class="actions">
         <button class="primary" id="saveBtn">บันทึกการตั้งค่า</button>
@@ -408,11 +405,40 @@
   const STORAGE_KEY = "squid-notifier-settings";
   const LOG_KEY = "squid-notifier-log";
 
+  // ---- storage abstraction ----
+  // window.storage only exists inside a Claude.ai artifact. If this page is
+  // saved and opened as a plain .html file (or hosted elsewhere), window.storage
+  // is undefined, every call throws, and settings silently never save.
+  // These wrappers fall back to localStorage so persistence works either way.
+  const hasClaudeStorage = (typeof window !== 'undefined') && !!window.storage;
+
+  async function storageGet(key){
+    if(hasClaudeStorage){
+      try{ return await window.storage.get(key); }
+      catch(e){ return null; }
+    }
+    try{
+      const v = localStorage.getItem(key);
+      return v !== null ? { key, value: v } : null;
+    }catch(e){ return null; }
+  }
+
+  async function storageSet(key, value){
+    if(hasClaudeStorage){
+      try{ return await window.storage.set(key, value); }
+      catch(e){ console.error('storage set failed', e); return null; }
+    }
+    try{
+      localStorage.setItem(key, value);
+      return { key, value };
+    }catch(e){ console.error('localStorage set failed', e); return null; }
+  }
+
   let state = {
     times: DEFAULT_TIMES.map(t => ({ time: t, enabled: true })),
     message: document.getElementById('messageInput').value,
     reminders: [5, 1], // minutes-before offsets, one message per offset per slot
-    webhook: "https://discord.com/api/webhooks/1546477786389155850/InntcBrOsPpgY1oE3xyoJGKcuIRH-k4FvX55isuORm1kdzEnq1ZWspV5oWB2csqd8-pp",
+    webhook: "",
     systemOn: false,
     sentToday: {} // "YYYY-MM-DD|HH:MM|offset" -> true
   };
@@ -444,7 +470,7 @@
 
   async function loadSettings(){
     try{
-      const res = await window.storage.get(STORAGE_KEY);
+      const res = await storageGet(STORAGE_KEY);
       if(res && res.value){
         const parsed = JSON.parse(res.value);
         state = Object.assign(state, parsed);
@@ -459,7 +485,7 @@
       }
     }catch(e){ /* no saved settings yet */ }
     try{
-      const logRes = await window.storage.get(LOG_KEY);
+      const logRes = await storageGet(LOG_KEY);
       if(logRes && logRes.value){
         logEntries = JSON.parse(logRes.value);
       }
@@ -468,15 +494,11 @@
   }
 
   async function persistSettings(){
-    try{
-      await window.storage.set(STORAGE_KEY, JSON.stringify(state));
-    }catch(e){ console.error('save failed', e); }
+    await storageSet(STORAGE_KEY, JSON.stringify(state));
   }
 
   async function persistLog(){
-    try{
-      await window.storage.set(LOG_KEY, JSON.stringify(logEntries.slice(0,40)));
-    }catch(e){ console.error('log save failed', e); }
+    await storageSet(LOG_KEY, JSON.stringify(logEntries.slice(0,40)));
   }
 
   function renderTimeList(){
@@ -594,6 +616,9 @@
     el('messageInput').value = state.message;
     el('webhookInput').value = state.webhook;
     el('systemToggle').checked = state.systemOn;
+    el('storageNote').textContent = hasClaudeStorage
+      ? 'บันทึกอัตโนมัติผ่านระบบของ Claude'
+      : 'บันทึกไว้ในเบราว์เซอร์นี้ (localStorage) — จะหายถ้าล้างข้อมูลเบราว์เซอร์';
     updateStatusBanner();
   }
 
@@ -617,7 +642,6 @@
         let target = parseTimeToday(item.time, now);
         target.setMinutes(target.getMinutes() - Number(offset));
         let fireTime = target;
-        // if the notify-moment already passed today, look at tomorrow
         if(fireTime <= now){
           fireTime = new Date(fireTime.getTime() + 24*60*60*1000);
         }
@@ -691,7 +715,6 @@
     if(!state.systemOn) return;
     const now = new Date();
     const dayKey = todayKey(now);
-    // clean up sentToday entries not from today
     Object.keys(state.sentToday).forEach(k => {
       if(!k.startsWith(dayKey)) delete state.sentToday[k];
     });
@@ -703,7 +726,6 @@
         const target = parseTimeToday(item.time, now);
         target.setMinutes(target.getMinutes() - Number(offset));
         const diff = now - target;
-        // fire if we're within the minute window right at/after the notify moment
         if(diff >= 0 && diff < 60000){
           fireForSlot(item.time, offset, key);
         }
@@ -719,7 +741,6 @@
     updateCountdown();
   }
 
-  // ---- events ----
   el('addTimeBtn').addEventListener('click', () => {
     const val = el('newTimeInput').value;
     if(!val) return;
@@ -790,7 +811,6 @@
     showToast('ล้างประวัติแล้ว');
   });
 
-  // ---- init ----
   loadSettings();
   timerHandle = setInterval(() => {
     updateCountdown();
